@@ -106,7 +106,7 @@ function InstagramIcon() {
 function App() {
   const basePath = import.meta.env.BASE_URL;
   const images = useMemo(
-    () => Array.from({ length: 203 }, (_, index) => `${basePath}Minimal/pic${index + 1}.jpg`),
+    () => Array.from({ length: 203 }, (_, index) => `${basePath}image/Minimal/pic${index + 1}.jpg`),
     [basePath]
   );
 

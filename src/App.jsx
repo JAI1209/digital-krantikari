@@ -104,9 +104,17 @@ function InstagramIcon() {
 }
 
 function App() {
+  const repoBase = useMemo(() => {
+    if (typeof window === "undefined") {
+      return "/";
+    }
+    const firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
+    return firstSegment ? `/${firstSegment}/` : "/";
+  }, []);
+
   const images = useMemo(
-    () => Array.from({ length: 203 }, (_, index) => `image/Minimal/pic${index + 1}.jpg`),
-    []
+    () => Array.from({ length: 203 }, (_, index) => `${repoBase}image/Minimal/pic${index + 1}.jpg`),
+    [repoBase]
   );
 
   const featured = images.slice(0, 10);

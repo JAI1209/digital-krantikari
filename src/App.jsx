@@ -104,17 +104,13 @@ function InstagramIcon() {
 }
 
 function App() {
-  const repoBase = useMemo(() => {
-    if (typeof window === "undefined") {
-      return "/";
-    }
-    const firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
-    return firstSegment ? `/${firstSegment}/` : "/";
-  }, []);
+  const basePath = import.meta.env.BASE_URL;
+  const normalizedBasePath = basePath.endsWith("/") ? basePath : `${basePath}/`;
+  const primaryImageRoot = `${normalizedBasePath}Minimal`;
 
   const images = useMemo(
-    () => Array.from({ length: 203 }, (_, index) => `${repoBase}image/Minimal/pic${index + 1}.jpg`),
-    [repoBase]
+    () => Array.from({ length: 203 }, (_, index) => `${primaryImageRoot}/pic${index + 1}.jpg`),
+    [primaryImageRoot]
   );
 
   const featured = images.slice(0, 10);
@@ -153,6 +149,15 @@ function App() {
   }, [images, searchTerm]);
   const visibleImages = filteredImages.slice(0, visibleCount);
   const hasMoreImages = visibleCount < filteredImages.length;
+  const getFallbackImage = (src) => {
+    if (src.includes("/Minimal/")) {
+      return src.replace("/Minimal/", "/image/Minimal/");
+    }
+    if (src.includes("/image/Minimal/")) {
+      return src.replace("/image/Minimal/", "/Minimal/");
+    }
+    return src;
+  };
 
   return (
     <div className="app">
@@ -200,7 +205,7 @@ function App() {
           </div>
 
           <div className="hero-copy hero-copy-centered">
-            <p className="status-pill">Minimal Flat Animated Logo v4</p>
+            <p className="status-pill">Minimal Flat Animated Logo</p>
             <h1>
               Elevate Your Brand
               <br />
@@ -273,7 +278,19 @@ function App() {
           <div className="slider-track" style={{ transform: `translateX(-${activeSlide * 100}%)` }}>
             {featured.map((image, index) => (
               <figure key={image} className="slide">
-                <img src={image} alt={`Featured ${index + 1}`} loading="lazy" />
+                <img
+                  src={image}
+                  alt={`Featured ${index + 1}`}
+                  loading="lazy"
+                  onError={(event) => {
+                    const element = event.currentTarget;
+                    if (element.dataset.fallbackTried === "true") {
+                      return;
+                    }
+                    element.dataset.fallbackTried = "true";
+                    element.src = getFallbackImage(image);
+                  }}
+                />
                 <figcaption>
                   <button onClick={() => setPreviewImage(image)}>Preview</button>
                   <a href={image} download>
@@ -337,7 +354,15 @@ function App() {
                 src={image}
                 alt={`Work ${index + 1}`}
                 loading="lazy"
-                onError={(event) => event.currentTarget.closest(".gallery-item")?.remove()}
+                onError={(event) => {
+                  const element = event.currentTarget;
+                  if (element.dataset.fallbackTried === "true") {
+                    element.closest(".gallery-item")?.remove();
+                    return;
+                  }
+                  element.dataset.fallbackTried = "true";
+                  element.src = getFallbackImage(image);
+                }}
               />
               <div className="item-actions">
                 <button onClick={() => setPreviewImage(image)}>Preview</button>
